@@ -1,6 +1,5 @@
 import inquirer from 'inquirer';
-import { QueryResult } from 'pg';
-import { pool, connectToDb } from './connection.js';
+import { pool, connectToDb } from './connections.js';
 
 /*
 async function viewEmployees() {
@@ -120,7 +119,7 @@ async function addDepartment() {
     }
 }*/
 async function main() {
-    await inquirer.prompt([
+   let answer = await inquirer.prompt([
         {
             type: 'list',
             name: 'intro',
@@ -136,7 +135,7 @@ async function main() {
                 'Quit'
             ]
         }
-    ]).then((answer) => {
+    ])
         switch(answer.intro) {
             case 'View All Employees':
                 viewEmployees();
@@ -164,13 +163,12 @@ async function main() {
                 pool.end();
                 break;
         }
-    })
-}
+    }
 async function showDepartments() {
     try {
         const result = await pool.query(`SELECT id, name AS Department FROM department;`);
         console.table(result.rows);
-        init();
+        main();
     } catch (err) {
         console.error('Error fetching departments:', err);
     }
@@ -184,7 +182,7 @@ async function viewRoles() {
                      INNER JOIN department ON (department.id = role.department_id);`;
         const result = await pool.query(sql);
         console.table(result.rows);
-        init();
+        main();
     } catch (err) {
         console.error('Error fetching roles:', err);
     }
@@ -203,7 +201,7 @@ async function viewEmployees() {
                      ORDER BY employee.id;`;
         const result = await pool.query(sql);
         console.table(result.rows);
-        init();
+        main();
     } catch (err) {
         console.error('Error fetching employees:', err);
     }
@@ -223,7 +221,7 @@ async function addDepartment() {
         const sql = `INSERT INTO department (name) VALUES ($1);`; // Use parameterized queries
         await pool.query(sql, [answers.department]);
         console.log(`Added ${answers.department} to the database`);
-        init();
+        main();
     } catch (err) {
         console.error('Error adding department:', err);
     }
@@ -232,7 +230,7 @@ async function addDepartment() {
 async function addRole() {
     try {
         const departmentResult = await pool.query(`SELECT * FROM department`);
-        const departmentList = departmentResult.rows.map(department => ({
+        const departmentList = departmentResult.rows.map((department: { [key: string]: string }) => ({
             name: department.name,
             value: department.id
         }));
@@ -259,7 +257,7 @@ async function addRole() {
         const sql = `INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3);`; // Use parameterized queries
         await pool.query(sql, [answers.title, answers.salary, answers.department]);
         console.log(`Added ${answers.title} to the database`);
-        init();
+        main();
     } catch (err) {
         console.error('Error adding role:', err);
     }
@@ -269,13 +267,13 @@ async function addRole() {
 async function addEmployee() {
     try {
         const employeeResult = await pool.query(`SELECT * FROM employee`);
-        const employeeList = employeeResult.rows.map(employee => ({
+        const employeeList = employeeResult.rows.map((employee: { [key: string]: string }) => ({
             name: employee.first_name.concat(" ", employee.last_name),
             value: employee.id
         }));
 
         const roleResult = await pool.query(`SELECT * FROM role`);
-        const roleList = roleResult.rows.map(role => ({
+        const roleList = roleResult.rows.map((role: {[key: string]: string}) => ({
             name: role.title,
             value: role.id
         }));
@@ -309,7 +307,7 @@ async function addEmployee() {
                      VALUES ($1, $2, $3, $4);`; // Use parameterized queries
         await pool.query(sql, [answers.first, answers.last, answers.role, answers.manager]);
         console.log(`Added ${answers.first} ${answers.last} to the database`);
-        init();
+        main();
     } catch (err) {
         console.error('Error adding employee:', err);
     }
@@ -319,13 +317,13 @@ async function addEmployee() {
 async function updateRole() {
     try {
         const employeeResult = await pool.query(`SELECT * FROM employee`);
-        const employeeList = employeeResult.rows.map(employee => ({
+        const employeeList = employeeResult.rows.map((employee: { [key: string]: string})  => ({
             name: employee.first_name.concat(" ", employee.last_name),
             value: employee.id
         }));
 
         const roleResult = await pool.query(`SELECT * FROM role`);
-        const roleList = roleResult.rows.map(role => ({
+        const roleList = roleResult.rows.map((role: { [key: string]: string}) => ({
             name: role.title,
             value: role.id
         }));
@@ -354,7 +352,7 @@ async function updateRole() {
         const sql = `UPDATE employee SET role_id = $1, manager_id = $2 WHERE id = $3;`; // Use parameterized queries
         await pool.query(sql, [answers.role, answers.manager, answers.employee]);
         console.log('Employee role updated');
-        init();
+        main();
     } catch (err) {
         console.error('Error updating employee role:', err);
     }
@@ -366,8 +364,6 @@ async function init() {
         await main();
     } catch (err) {
         console.error('An error occurred:', err);
-    } finally {
-        await pool.end();
-        console.log('Connection to database closed.');
     }
 }
+init();

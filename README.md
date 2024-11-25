@@ -11,6 +11,7 @@ You must install the [Node.js](https://nodejs.org/en/)
 ### Clone Repository
 Clone the repository: Using git clone (https://github.com/Kurt1717/employeeTracker.git)
 ## Usage
+See demo video for steps on usage (https://drive.google.com/file/d/1hDTsMBwWKFkHULne7LwqO7j-9tEGAVUU/view?usp=sharing)  
 Run the application using Node.Js
 `npm run build` and then `npm run start`
 ## Contributing
